@@ -52,16 +52,34 @@ app.get('/factories', async (c: Context) => {
       )
     : await client.all('SELECT * FROM factories');
 
+  const updateFactories = [];
+  for (const f of factories) {
+    let riskAssessment = f.risk_assessment;
+    if (riskAssessment === null) {
+      const risks: number[] = [];
+      for (const timeframe of TIMEFRAMES) {
+	const tmp = await getMeanTemperatureWarmestQuarter({
+	  latitude: f.latitude,
+          longitude: f.longitude,
+          timeframe
+          });
+         risks.push(tmp);
+       }
+       riskAssessment = risks.some((risk) => risk >= 34) ? 'High': 'Low';
+      }
+      updateFactories.push(riskAssessment);
+  }
+  
   return c.json(
     factories.map(
-      (factory: IDbFactory): IFactory => ({
+      (factory: IDbFactory, index: number): IFactory => ({
         factoryName: factory.factory_name,
         address: factory.address,
         country: factory.country,
         latitude: factory.latitude,
         longitude: factory.longitude,
         yearlyRevenue: factory.yearly_revenue,
-	riskAssessment: factory.risk_assessment,
+	riskAssessment: updateFactories[index],
       })
     )
   );
@@ -90,7 +108,7 @@ app.post('/factories', async (c: Context) => {
        return (null)
   }
 
-  const riskAssessment = temperatures.some((temp) => temp >= 34) ? 'High': 'Low'; 
+  const riskAssessment = temperatures.some((temp) => temp >= 34) ? 'High': 'Low';
 
   const factory: IFactory = {
     factoryName,
