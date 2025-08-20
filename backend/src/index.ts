@@ -44,7 +44,7 @@ app.get('/factories', async (c: Context) => {
   const client = await dbClientPromise;
 
   const query = c.req.query('q');
-  const updateRisk = `UPDATE factories SET riskAssessment = ? WHERE id = ?`;
+  const updateRisk = `UPDATE factories SET risk_assessment = ? WHERE id = ?`;
 
   const factories = query
     ? await client.all(
