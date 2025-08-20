@@ -1,6 +1,6 @@
 ## Climadex
 
-## Launch the project with all dependencies
+## Install dependencies and launch the project
 `make`
 
 ## Launch the project
