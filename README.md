@@ -1,5 +1,11 @@
 ## Climadex
 
+## Launch the project with all dependencies
+`make`
+
+## Launch the project
+`make start`
+
 ## Overview
 
 You are provided with Climadex, a small website where the user can monitor their factories and understand what kind of impact the rise of temperatures in the world is going to have on them!
