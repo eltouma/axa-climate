@@ -105,7 +105,7 @@ app.post('/factories', async (c: Context) => {
     if (value !== null)
       temperatures.push(value);
     else
-       return (null)
+      return c.json({ error: 'Failed to get temperature' }, 500);
   }
 
   const riskAssessment = temperatures.some((temp) => temp >= 34) ? 'High': 'Low';
