@@ -44,6 +44,7 @@ app.get('/factories', async (c: Context) => {
   const client = await dbClientPromise;
 
   const query = c.req.query('q');
+  const updateRisk = `UPDATE factories SET riskAssessment = ? WHERE id = ?`;
 
   const factories = query
     ? await client.all(
@@ -66,6 +67,7 @@ app.get('/factories', async (c: Context) => {
          risks.push(tmp);
        }
        riskAssessment = risks.some((risk) => risk >= 34) ? 'High': 'Low';
+       await client.run(updateRisk, riskAssessment, f.id);
       }
       updateFactories.push(riskAssessment);
   }
@@ -73,6 +75,7 @@ app.get('/factories', async (c: Context) => {
   return c.json(
     factories.map(
       (factory: IDbFactory, index: number): IFactory => ({
+        id: factory.id,
         factoryName: factory.factory_name,
         address: factory.address,
         country: factory.country,
@@ -133,6 +136,35 @@ VALUES (?, ?, ?, ?, ?, ?, ?);`,
   );
 
   return c.json({ result: 'OK' });
+});
+
+app.get('/reports/:reportId', async (c: Context) => {
+  const client = await dbClientPromise;
+  const id = c.req.param('reportId');
+
+  const factory = await client.get('SELECT * FROM factories WHERE id = ?;', id);
+
+  const temperatures = [];
+  for (const timeframe of TIMEFRAMES) {
+    const temp = await getMeanTemperatureWarmestQuarter({
+      latitude: factory.latitude,
+      longitude: factory.longitude,
+      timeframe,
+    });
+    temperatures.push({ year: timeframe, temperature: temp });
+  }
+  return c.json({
+    factory: {
+      factoryName: factory.factory_name,
+      address: factory.address,
+      country: factory.country,
+      latitude: factory.latitude,
+      longitude: factory.longitude,
+      yearlyRevenue: factory.yearly_revenue,
+      riskAssessment: factory.risk_assessment,
+      evolution: temperatures,
+    }
+  });
 });
 
 serve(app);
