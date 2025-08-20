@@ -2,6 +2,7 @@ import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import * as fs from 'fs/promises';
 
+
 const createTableStatement = `
 CREATE TABLE factories (
     id INTEGER PRIMARY KEY,
@@ -10,21 +11,24 @@ CREATE TABLE factories (
     country TEXT NOT NULL,
     latitude REAL NOT NULL,
     longitude REAL NOT NULL,
-    yearly_revenue INTEGER NOT NULL
+    yearly_revenue INTEGER NOT NULL,
+    risk_assessment TEXT
 );
 `;
 
 const insertTableStatement = `
-INSERT INTO factories (factory_name, address, country, latitude, longitude, yearly_revenue)
-VALUES (?, ?, ?, ?, ?, ?);
+INSERT INTO factories (factory_name, address, country, latitude, longitude, yearly_revenue, risk_assessment)
+VALUES (?, ?, ?, ?, ?, ?, ?);
 `;
 
 (async () => {
+
     const db = await open({
         filename: 'db.sqlite3',
         driver: sqlite3.Database
     })
 
+    await db.exec(dropTable);
     await db.exec(createTableStatement);
 
     const factoriesData = await fs.readFile('./scripts/factories.json', 'utf8');
@@ -37,7 +41,8 @@ VALUES (?, ?, ?, ?, ?, ?);
             factory.country,
             factory.latitude,
             factory.longitude,
-            factory.yearly_revenue
+            factory.yearly_revenue,
+	    factory.risk_assessment
         );
     }
 
